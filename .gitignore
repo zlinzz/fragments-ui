@@ -1,3 +1,7 @@
+# Parcel
+dist/
+.parcel-cache/
+
 # Logs
 logs
 *.log
