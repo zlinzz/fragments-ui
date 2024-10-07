@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "parcel index.html",
-    "build": "parcel build"
+    "build": "parcel build",
+    "lint": "eslint \"./src/**/*.js\""
   },
   "repository": {
     "type": "git",
@@ -15,13 +16,16 @@
   "author": "Zixin(Zoey) Lin",
   "license": "UNLICENSED",
   "devDependencies": {
+    "@eslint/js": "^9.12.0",
     "buffer": "^6.0.3",
+    "eslint": "^9.12.0",
+    "globals": "^15.10.0",
     "parcel": "^2.12.0",
     "process": "^0.11.10",
     "punycode": "^1.4.1",
     "querystring-es3": "^0.2.1"
   },
   "dependencies": {
-    "aws-amplify": "^5.0.0"
+    "aws-amplify": "^6.6.4"
   }
 }
