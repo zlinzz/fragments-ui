@@ -1,13 +1,15 @@
 // src/app.js
 
 import { Auth, getUser } from './auth';
-// import { getUserFragments } from './api';
+import { getUserFragments } from './api';
+import { createFragment } from './api';
 
 async function init() {
   // Get our UI elements
   const userSection = document.querySelector('#user');
   const loginBtn = document.querySelector('#login');
   const logoutBtn = document.querySelector('#logout');
+  const fragmentPostForm = document.querySelector('#fragmentPostFormSection');
 
   // Wire up event handlers to deal with login and logout.
   loginBtn.onclick = () => {
@@ -34,6 +36,7 @@ async function init() {
 
   // Do an authenticated request to the fragments API server and log the result
   // const userFragments = await getUserFragments(user);
+  await getUserFragments(user);
 
   // TODO: later in the course, we will show all the user's fragments in the HTML...
 
@@ -45,6 +48,21 @@ async function init() {
 
   // Disable the Login button
   loginBtn.disabled = true;
+
+  // Update the UI to allow POST after user logged in
+  fragmentPostForm.hidden = false;
+
+  fragmentPostForm.onsubmit = async (event) => {
+    event.preventDefault(); // Prevent default submit normally
+
+    const type = document.querySelector('#fragmentType').value; // Get fragment type
+    const data = document.querySelector('#fragmentData').value; // Get fragment data
+    try {
+      await createFragment(user, type, data);
+    } catch (err) {
+      console.error('Failed to create fragment:', err);
+    }
+  };
 }
 
 // Wait for the DOM to be ready, then start the app
