@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -13,6 +13,23 @@
     </section>
     <section hidden id="user">
       <h2>Hello <span class="username"></span>!</h2>
+    </section>
+
+    <!-- Form to POST a fragment -->
+    <section hidden id="fragmentPostFormSection">
+      <h2>Create a Fragment</h2>
+      <form id="fragmentPostForm">
+        <label for="fragmentType">Fragment Type:</label>
+        <input type="text" id="fragmentType" required />
+        <br />
+
+        <label for="fragmentData">Fragment data:</label>
+        <textarea id="fragmentData" required></textarea>
+        <br />
+        <br />
+
+        <button type="submit">Create Fragment</button>
+      </form>
     </section>
   </body>
 </html>
