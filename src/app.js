@@ -3,13 +3,17 @@
 import { Auth, getUser } from './auth';
 import { getUserFragments } from './api';
 import { createFragment } from './api';
+import { displayFragments } from './api';
 
 async function init() {
   // Get our UI elements
   const userSection = document.querySelector('#user');
   const loginBtn = document.querySelector('#login');
   const logoutBtn = document.querySelector('#logout');
-  const fragmentPostForm = document.querySelector('#fragmentPostFormSection');
+  const fragmentPostFormSection = document.querySelector('#fragmentPostFormSection');
+  const fragmentPostForm = document.querySelector('#fragmentPostForm');
+  const fragmentListSection = document.querySelector('#fragmentListSection');
+  const fragmentListContainer = document.querySelector('#fragmentListContainer');
 
   // Wire up event handlers to deal with login and logout.
   loginBtn.onclick = () => {
@@ -36,9 +40,7 @@ async function init() {
 
   // Do an authenticated request to the fragments API server and log the result
   // const userFragments = await getUserFragments(user);
-  await getUserFragments(user);
-
-  // TODO: later in the course, we will show all the user's fragments in the HTML...
+  const userFragments = await getUserFragments(user);
 
   // Update the UI to welcome the user
   userSection.hidden = false;
@@ -46,19 +48,36 @@ async function init() {
   // Show the user's username
   userSection.querySelector('.username').innerText = user.username;
 
+  // Display User Fragment List Metadata Title
+  fragmentListSection.hidden = false;
+  fragmentListSection.querySelector('.username').innerText = user.username;
+
+  // Initially display the user's fragments' metadata
+  displayFragments(userFragments.fragments);
+
   // Disable the Login button
   loginBtn.disabled = true;
 
   // Update the UI to allow POST after user logged in
-  fragmentPostForm.hidden = false;
+  fragmentPostFormSection.hidden = false;
 
-  fragmentPostForm.onsubmit = async (event) => {
+  fragmentPostFormSection.onsubmit = async (event) => {
     event.preventDefault(); // Prevent default submit normally
 
     const type = document.querySelector('#fragmentType').value; // Get fragment type
     const data = document.querySelector('#fragmentData').value; // Get fragment data
     try {
       await createFragment(user, type, data);
+
+      // Clear text box after submit
+      fragmentPostForm.reset();
+
+      // Re-fetch the user's fragments after creating a new one
+      const updatedUserFragments = await getUserFragments(user);
+
+      // Update the fragment list
+      fragmentListContainer.innerHTML = '';
+      displayFragments(updatedUserFragments.fragments);
     } catch (err) {
       console.error('Failed to create fragment:', err);
     }
