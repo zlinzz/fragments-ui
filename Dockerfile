@@ -16,8 +16,22 @@ RUN npm ci
 
 # Stage 1: Build the application
 FROM node:20.10.0-alpine3.19@sha256:9e38d3d4117da74a643f67041c83914480b335c3bd44d37ccf5b5ad86cd715d1 AS builder 
-
+    
 WORKDIR /app
+
+ARG API_URL \
+    AWS_COGNITO_POOL_ID \
+    AWS_COGNITO_CLIENT_ID \
+    AWS_COGNITO_HOSTED_UI_DOMAIN \
+    OAUTH_SIGN_IN_REDIRECT_URL \
+    OAUTH_SIGN_OUT_REDIRECT_URL
+
+ENV API_URL=${API_URL} \
+    AWS_COGNITO_POOL_ID=${AWS_COGNITO_POOL_ID} \
+    AWS_COGNITO_CLIENT_ID=${AWS_COGNITO_CLIENT_ID} \
+    AWS_COGNITO_HOSTED_UI_DOMAIN=${AWS_COGNITO_HOSTED_UI_DOMAIN} \
+    OAUTH_SIGN_IN_REDIRECT_URL=${OAUTH_SIGN_IN_REDIRECT_URL} \
+    OAUTH_SIGN_OUT_REDIRECT_URL=${OAUTH_SIGN_OUT_REDIRECT_URL} 
 
 # Copy cached dependencies from previous stage so we don't have to download
 COPY --from=dependencies /app/node_modules /app/node_modules
@@ -39,6 +53,10 @@ LABEL maintainer="Zoey Lin <zlin104@myseneca.ca>" \
 
 WORKDIR /usr/local/src/fragments-ui
 
+ENV PORT=80 \
+    NPM_CONFIG_LOGLEVEL=warn \
+    NPM_CONFIG_COLOR=false
+
 #copy from builder
 COPY --from=builder /app/dist/. /usr/share/nginx/html/
 
@@ -48,3 +66,4 @@ EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
   CMD curl --fail localhost:80 || exit 1
 
+CMD ["nginx", "-g", "daemon off;"]
