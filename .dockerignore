@@ -1,0 +1,11 @@
+.parcel-cache/
+.vscode/
+dist/
+node_modules/
+.env
+.git/
+.gitignore
+.prettierrc
+.prettierignore
+eslint.config.mjs
+README.md
