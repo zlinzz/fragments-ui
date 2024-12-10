@@ -70,6 +70,52 @@ export async function createFragment(user, type, data) {
   }
 }
 
+// Open the modal
+function openUpdateModal(fragment) {
+  const modal = document.getElementById('updateFragmentModal');
+  // Use flex to center the modal
+  modal.style.display = 'flex';
+
+  // Get modal form elements
+  const fragmentFileInputM = document.querySelector('#fragmentFileM');
+  const fragmentDataInputM = document.querySelector('#fragmentDataM');
+  const fragmentTypeInputM = document.querySelector('#fragmentTypeM');
+
+  fragmentFileInputM.value = '';
+  fragmentDataInputM.value = '';
+  // Pre-defined the fragment type input as original one
+  fragmentTypeInputM.value = fragment.type;
+
+  // Regulate the input fields based on the file input
+  // Set up event listeners for dynamic adjustments (modification
+  // after open the modal)
+  fragmentFileInputM.addEventListener('change', () => {
+    if (fragmentFileInputM.files.length > 0) {
+      fragmentDataInputM.required = false;
+      fragmentDataInputM.disabled = true;
+      fragmentDataInputM.value = '';
+
+      fragmentTypeInputM.value =
+        fragmentFileInputM.files[0].type || 'Unable to detect type, please input manually';
+      if (fragmentTypeInputM.value === 'Unable to detect type, please input manually') {
+        fragmentTypeInputM.style.color = 'red';
+      } else {
+        fragmentTypeInputM.style.color = '';
+      }
+    } else {
+      fragmentDataInputM.required = true;
+      fragmentDataInputM.disabled = false;
+
+      fragmentTypeInputM.style.color = '';
+      fragmentTypeInputM.value = fragment.type;
+    }
+  });
+
+  fragmentTypeInputM.addEventListener('input', () => {
+    fragmentTypeInputM.style.color = '';
+  });
+}
+
 export function displayFragments(fragments) {
   const fragmentListContainer = document.querySelector('#fragmentListContainer');
 
@@ -91,6 +137,7 @@ export function displayFragments(fragments) {
       // Create a delete button
       const deleteButton = document.createElement('button');
       deleteButton.textContent = 'Delete';
+      deleteButton.style.marginRight = '10px';
 
       // Add event listener to delete button
       deleteButton.addEventListener('click', async () => {
@@ -103,8 +150,18 @@ export function displayFragments(fragments) {
         }
       });
 
-      // Append the delete button & fragment list to the unordered list element
+      // Create an update button
+      const updateButton = document.createElement('button');
+      updateButton.textContent = 'Update';
+
+      // Add event listener to the update button to open the modal for updating
+      updateButton.addEventListener('click', () => {
+        openUpdateModal(fragment);
+      });
+
+      // Append the delete, update button, and fragment list to the unordered list element
       fragmentItem.appendChild(deleteButton);
+      fragmentItem.appendChild(updateButton);
       fragmentList.appendChild(fragmentItem);
     });
 

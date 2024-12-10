@@ -1,9 +1,7 @@
 // src/app.js
 
 import { Auth, getUser } from './auth';
-import { getUserFragments } from './api';
-import { createFragment } from './api';
-import { displayFragments } from './api';
+import { getUserFragments, createFragment, displayFragments } from './api';
 
 async function init() {
   // Get our UI elements
@@ -20,6 +18,8 @@ async function init() {
   // Show fragment list elements
   const fragmentListSection = document.querySelector('#fragmentListSection');
   const fragmentListContainer = document.querySelector('#fragmentListContainer');
+  // Update fragment modal elements
+  const closeModalBtn = document.getElementById('closeModal');
 
   // Set required attribute for fragmentDataInput and fragmentTypeInput
   // Set fragment type input placeholder and value based on the file input state
@@ -31,15 +31,31 @@ async function init() {
 
       // Set the fragment type to the file type when a file is selected
       // keep the type input not disabled, since .type does not know some type
-      fragmentTypeInput.value = fragmentFileInput.files[0].type;
+      fragmentTypeInput.value =
+        fragmentFileInput.files[0].type || 'Unable to detect type, please input manually';
+      if (fragmentTypeInput.value === 'Unable to detect type, please input manually') {
+        fragmentTypeInput.style.color = 'red';
+      } else {
+        fragmentTypeInput.style.color = '';
+      }
     } else {
       fragmentDataInput.required = true;
       fragmentDataInput.disabled = false;
 
       // Clear the type if no file is selected
+      fragmentTypeInput.style.color = '';
       fragmentTypeInput.value = '';
     }
   }
+  // Once there is a new input, remove the color
+  fragmentTypeInput.addEventListener('input', () => {
+    fragmentTypeInput.style.color = '';
+  });
+
+  // Add event listener to file input to handle the toggle
+  fragmentFileInput.addEventListener('change', toggleRequiredFields);
+  // Also toggle on page load in case a file was pre-selected (e.g., after a form reset)
+  toggleRequiredFields();
 
   // Wire up event handlers to deal with login and logout.
   loginBtn.onclick = () => {
@@ -63,7 +79,7 @@ async function init() {
   // Log the user info for debugging purposes
   console.log({ user });
 
-  // Do an authenticated request to the fragments API server and log the result
+  // Do an authenticated request to the fragments API server
   const userFragments = await getUserFragments(user);
 
   // Update the UI to welcome the user
@@ -83,19 +99,20 @@ async function init() {
   // Update the UI to allow POST after user logged in
   fragmentPostFormSection.hidden = false;
 
-  // Add event listener to file input to handle the toggle
-  fragmentFileInput.addEventListener('change', toggleRequiredFields);
-  // Also toggle on page load in case a file was pre-selected (e.g., after a form reset)
-  toggleRequiredFields();
+  // Add event listener to close the modal
+  closeModalBtn.addEventListener('click', () => {
+    const modal = document.getElementById('updateFragmentModal');
+    // Hide the modal
+    modal.style.display = 'none';
+  });
 
   fragmentPostFormSection.onsubmit = async (event) => {
-    event.preventDefault(); // Prevent default submit normally
-
+    // Prevent default submit normally
+    event.preventDefault();
     let fragmentData = '';
     let type = fragmentTypeInput.value;
 
     const file = fragmentFileInput.files[0];
-
     if (file) {
       fragmentData = file;
     } else {
@@ -104,7 +121,6 @@ async function init() {
 
     try {
       await createFragment(user, type, fragmentData);
-
       fragmentPostForm.reset();
 
       const updatedUserFragments = await getUserFragments(user);
