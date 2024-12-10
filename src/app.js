@@ -10,10 +10,37 @@ async function init() {
   const userSection = document.querySelector('#user');
   const loginBtn = document.querySelector('#login');
   const logoutBtn = document.querySelector('#logout');
+  // POST form elements
   const fragmentPostFormSection = document.querySelector('#fragmentPostFormSection');
   const fragmentPostForm = document.querySelector('#fragmentPostForm');
+  // Get the text, file, type input elements
+  const fragmentDataInput = document.querySelector('#fragmentData');
+  const fragmentFileInput = document.querySelector('#fragmentFile');
+  const fragmentTypeInput = document.querySelector('#fragmentType');
+  // Show fragment list elements
   const fragmentListSection = document.querySelector('#fragmentListSection');
   const fragmentListContainer = document.querySelector('#fragmentListContainer');
+
+  // Set required attribute for fragmentDataInput and fragmentTypeInput
+  // Set fragment type input placeholder and value based on the file input state
+  function toggleRequiredFields() {
+    if (fragmentFileInput.files.length > 0) {
+      fragmentDataInput.required = false;
+      fragmentDataInput.disabled = true;
+      fragmentDataInput.value = '';
+
+      fragmentTypeInput.disabled = true;
+      // Set the fragment type to the file type when a file is selected
+      fragmentTypeInput.value = fragmentFileInput.files[0].type;
+    } else {
+      fragmentDataInput.required = true;
+      fragmentDataInput.disabled = false;
+
+      // Clear the type if no file is selected
+      fragmentTypeInput.value = '';
+      fragmentTypeInput.disabled = false;
+    }
+  }
 
   // Wire up event handlers to deal with login and logout.
   loginBtn.onclick = () => {
@@ -34,24 +61,20 @@ async function init() {
     logoutBtn.disabled = true;
     return;
   }
-
   // Log the user info for debugging purposes
   console.log({ user });
 
   // Do an authenticated request to the fragments API server and log the result
-  // const userFragments = await getUserFragments(user);
   const userFragments = await getUserFragments(user);
 
   // Update the UI to welcome the user
   userSection.hidden = false;
-
   // Show the user's username
   userSection.querySelector('.username').innerText = user.username;
 
   // Display User Fragment List Metadata Title
   fragmentListSection.hidden = false;
   fragmentListSection.querySelector('.username').innerText = user.username;
-
   // Initially display the user's fragments' metadata
   displayFragments(userFragments.fragments);
 
@@ -61,21 +84,31 @@ async function init() {
   // Update the UI to allow POST after user logged in
   fragmentPostFormSection.hidden = false;
 
+  // Add event listener to file input to handle the toggle
+  fragmentFileInput.addEventListener('change', toggleRequiredFields);
+  // Also toggle on page load in case a file was pre-selected (e.g., after a form reset)
+  toggleRequiredFields();
+
   fragmentPostFormSection.onsubmit = async (event) => {
     event.preventDefault(); // Prevent default submit normally
 
-    const type = document.querySelector('#fragmentType').value; // Get fragment type
-    const data = document.querySelector('#fragmentData').value; // Get fragment data
-    try {
-      await createFragment(user, type, data);
+    let fragmentData = '';
+    let type = fragmentTypeInput.value;
 
-      // Clear text box after submit
+    const file = fragmentFileInput.files[0];
+
+    if (file) {
+      fragmentData = file;
+    } else {
+      fragmentData = fragmentDataInput.value;
+    }
+
+    try {
+      await createFragment(user, type, fragmentData);
+
       fragmentPostForm.reset();
 
-      // Re-fetch the user's fragments after creating a new one
       const updatedUserFragments = await getUserFragments(user);
-
-      // Update the fragment list
       fragmentListContainer.innerHTML = '';
       displayFragments(updatedUserFragments.fragments);
     } catch (err) {
