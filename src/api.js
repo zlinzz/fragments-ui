@@ -2,6 +2,7 @@
 
 // fragments microservice API to use, defaults to localhost:8080 if not set in env
 const apiUrl = process.env.API_URL || 'http://localhost:8080';
+const { getUser } = require('./auth');
 
 /**
  * Given an authenticated user, request all fragments for this user from the
@@ -17,6 +18,7 @@ export async function getUserFragments(user) {
       // earlier, to automatically attach the user's ID token.
       headers: user.authorizationHeaders(),
     });
+
     if (!res.ok) {
       throw new Error(`${res.status} ${res.statusText}`);
     }
@@ -85,7 +87,24 @@ export function displayFragments(fragments) {
         <strong>Type:</strong> ${fragment.type}<br>
         <strong>Size:</strong> ${fragment.size} <br/>
       `;
-      // Append the fragment list to the unordered list element
+
+      // Create a delete button
+      const deleteButton = document.createElement('button');
+      deleteButton.textContent = 'Delete';
+
+      // Add event listener to delete button
+      deleteButton.addEventListener('click', async () => {
+        const user = await getUser();
+        const isDeleted = await deleteFragment(user, fragment.id);
+        if (isDeleted) {
+          // Re-fetch and update the fragment list after successful deletion
+          const updatedFragments = await getUserFragments(user);
+          displayFragments(updatedFragments.fragments);
+        }
+      });
+
+      // Append the delete button & fragment list to the unordered list element
+      fragmentItem.appendChild(deleteButton);
       fragmentList.appendChild(fragmentItem);
     });
 
@@ -97,5 +116,25 @@ export function displayFragments(fragments) {
     noFragmentsMessage.textContent = 'No fragments found.';
     noFragmentsMessage.style.color = 'red';
     fragmentListContainer.appendChild(noFragmentsMessage);
+  }
+}
+
+export async function deleteFragment(user, fragmentId) {
+  console.log(`Deleting fragment with ID: ${fragmentId}`);
+  try {
+    const res = await fetch(`${apiUrl}/v1/fragments/${fragmentId}`, {
+      method: 'DELETE',
+      headers: user.authorizationHeaders(),
+    });
+
+    if (!res.ok) {
+      throw new Error(`${res.status} ${res.statusText}`);
+    }
+
+    console.log('Successfully deleted fragment');
+    return true;
+  } catch (err) {
+    console.error('Unable to delete fragment:', err);
+    return false;
   }
 }
