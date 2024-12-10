@@ -29,8 +29,8 @@ async function init() {
       fragmentDataInput.disabled = true;
       fragmentDataInput.value = '';
 
-      fragmentTypeInput.disabled = true;
       // Set the fragment type to the file type when a file is selected
+      // keep the type input not disabled, since .type does not know some type
       fragmentTypeInput.value = fragmentFileInput.files[0].type;
     } else {
       fragmentDataInput.required = true;
@@ -38,7 +38,6 @@ async function init() {
 
       // Clear the type if no file is selected
       fragmentTypeInput.value = '';
-      fragmentTypeInput.disabled = false;
     }
   }
 
