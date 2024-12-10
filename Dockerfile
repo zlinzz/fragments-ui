@@ -39,7 +39,7 @@ COPY --from=dependencies /app/package*.json /app/
 
 # Copy src to /app/src/
 COPY ./src ./src
-COPY ./index.html /app/
+# COPY ./index.html /app/
 
 RUN npm run build
 

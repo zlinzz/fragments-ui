@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>Fragments UI</title>
     <link rel="stylesheet" href="https://unpkg.com/bamboo.css" />
-    <script type="module" src="src/app.js"></script>
+    <script type="module" src="./app.js"></script>
   </head>
   <body>
     <h1>Fragments UI</h1>
@@ -20,11 +20,20 @@
       <h2>Create a Fragment</h2>
       <form id="fragmentPostForm">
         <label for="fragmentType">Fragment Type:</label>
-        <input type="text" id="fragmentType" required />
+        <input type="text" id="fragmentType" />
         <br />
 
-        <label for="fragmentData">Fragment data:</label>
-        <textarea id="fragmentData" required></textarea>
+        <!-- Text input for Fragment data -->
+        <div id="textInputSection">
+          <label for="fragmentData">Fragment data (text):</label>
+          <textarea id="fragmentData"></textarea>
+        </div>
+
+        <!-- File Input -->
+        <div id="fileInputSection">
+          <label for="fragmentFile">Or upload a file:</label>
+          <input type="file" id="fragmentFile" />
+        </div>
         <br />
         <br />
 
