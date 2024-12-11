@@ -80,11 +80,15 @@ export function openUpdateModal(fragment) {
   const fragmentFileInputM = document.querySelector('#fragmentFileM');
   const fragmentDataInputM = document.querySelector('#fragmentDataM');
   const fragmentTypeInputM = document.querySelector('#fragmentTypeM');
+  const statusMessage = document.querySelector('#updateFragmentStatus');
 
   fragmentFileInputM.value = '';
   fragmentDataInputM.value = '';
+  fragmentDataInputM.disabled = false;
   // Pre-defined the fragment type input as original one
   fragmentTypeInputM.value = fragment.type;
+  // Clear any previous status messages
+  statusMessage.innerHTML = '';
 
   let updatedData = '';
 
@@ -145,6 +149,11 @@ export function openUpdateModal(fragment) {
       displayFragments(updatedFragments.fragments);
     } else {
       console.error('Failed to update the fragment.');
+
+      // Display failure message
+      statusMessage.innerHTML =
+        "Failed to update the fragment, please try again.<br /> Make sure you do not change the fragment's original type.";
+      statusMessage.style.color = 'red';
     }
   };
 }

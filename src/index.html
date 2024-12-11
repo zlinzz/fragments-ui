@@ -67,7 +67,7 @@
 
           <div id="textInputSection">
             <label for="fragmentDataM">Fragment Data (text):</label>
-            <textarea id="fragmentDataM"></textarea>
+            <textarea id="fragmentDataM" required></textarea>
           </div>
 
           <div id="fileInputSection">
@@ -79,6 +79,9 @@
 
           <button type="submit" id="updateFragmentM">Update Fragment</button>
           <button type="button" id="closeModal">Close</button>
+
+          <!-- Status message container -->
+          <div id="updateFragmentStatus" class="status-message"></div>
         </form>
       </div>
     </div>
