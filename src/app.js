@@ -79,7 +79,7 @@ async function init() {
   // Log the user info for debugging purposes
   console.log({ user });
 
-  // Do an authenticated request to the fragments API server
+  // Do an authenticated request to the fragments API server to get fragments
   const userFragments = await getUserFragments(user);
 
   // Update the UI to welcome the user
@@ -98,13 +98,6 @@ async function init() {
 
   // Update the UI to allow POST after user logged in
   fragmentPostFormSection.hidden = false;
-
-  // Add event listener to close the modal
-  closeModalBtn.addEventListener('click', () => {
-    const modal = document.getElementById('updateFragmentModal');
-    // Hide the modal
-    modal.style.display = 'none';
-  });
 
   fragmentPostFormSection.onsubmit = async (event) => {
     // Prevent default submit normally
@@ -130,6 +123,13 @@ async function init() {
       console.error('Failed to create fragment:', err);
     }
   };
+
+  // Add event listener to close the modal
+  closeModalBtn.addEventListener('click', () => {
+    const modal = document.getElementById('updateFragmentModal');
+    // Hide the modal
+    modal.style.display = 'none';
+  });
 }
 
 // Wait for the DOM to be ready, then start the app

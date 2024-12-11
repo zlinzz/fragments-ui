@@ -70,8 +70,8 @@ export async function createFragment(user, type, data) {
   }
 }
 
-// Open the modal
-function openUpdateModal(fragment) {
+// Open the modal and assign event listener to update modal form elements
+export function openUpdateModal(fragment) {
   const modal = document.getElementById('updateFragmentModal');
   // Use flex to center the modal
   modal.style.display = 'flex';
@@ -86,6 +86,8 @@ function openUpdateModal(fragment) {
   // Pre-defined the fragment type input as original one
   fragmentTypeInputM.value = fragment.type;
 
+  let updatedData = '';
+
   // Regulate the input fields based on the file input
   // Set up event listeners for dynamic adjustments (modification
   // after open the modal)
@@ -94,6 +96,7 @@ function openUpdateModal(fragment) {
       fragmentDataInputM.required = false;
       fragmentDataInputM.disabled = true;
       fragmentDataInputM.value = '';
+      updatedData = fragmentFileInputM.files[0];
 
       fragmentTypeInputM.value =
         fragmentFileInputM.files[0].type || 'Unable to detect type, please input manually';
@@ -108,12 +111,68 @@ function openUpdateModal(fragment) {
 
       fragmentTypeInputM.style.color = '';
       fragmentTypeInputM.value = fragment.type;
+      updatedData = fragmentDataInputM.value;
+    }
+  });
+
+  // Once text input field change, update the updatedData
+  fragmentDataInputM.addEventListener('input', () => {
+    if (!fragmentDataInputM.disabled) {
+      updatedData = fragmentDataInputM.value;
     }
   });
 
   fragmentTypeInputM.addEventListener('input', () => {
     fragmentTypeInputM.style.color = '';
   });
+
+  // Update the fragment's data
+  const updateForm = document.querySelector('#updateFragmentForm');
+  updateForm.onsubmit = async (event) => {
+    event.preventDefault();
+
+    const user = await getUser();
+
+    console.log(
+      `Update fragment form inputs: fragmentId=${fragment.id} data=${updatedData} type=${fragmentTypeInputM.value}`
+    );
+    const response = await updateFragment(user, fragment.id, fragmentTypeInputM.value, updatedData);
+    if (response) {
+      // Close modal after successful update
+      modal.style.display = 'none';
+
+      const updatedFragments = await getUserFragments(user);
+      displayFragments(updatedFragments.fragments);
+    } else {
+      console.error('Failed to update the fragment.');
+    }
+  };
+}
+
+export async function updateFragment(user, fragmentId, updatedType, updatedData) {
+  console.log(`Updating fragment with id ${fragmentId}`);
+
+  try {
+    const res = await fetch(`${apiUrl}/v1/fragments/${fragmentId}`, {
+      method: 'PUT',
+      headers: {
+        ...user.authorizationHeaders(),
+        'Content-Type': updatedType,
+      },
+      body: updatedData,
+    });
+
+    if (!res.ok) {
+      throw new Error(`${res.status} ${res.statusText}`);
+    }
+
+    const response = await res.json();
+    console.log('Successfully updated fragment', { response });
+    return response;
+  } catch (err) {
+    console.error('Unable to update fragment', { err });
+    return null;
+  }
 }
 
 export function displayFragments(fragments) {
@@ -153,6 +212,7 @@ export function displayFragments(fragments) {
       // Create an update button
       const updateButton = document.createElement('button');
       updateButton.textContent = 'Update';
+      // updateButton.id = fragment.id;
 
       // Add event listener to the update button to open the modal for updating
       updateButton.addEventListener('click', () => {
