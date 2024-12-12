@@ -390,7 +390,9 @@ export async function openConvertModal(fragment) {
       }
 
       // Clear previous append image child before convert for the convertFragmentData span
-      convertedFragmentData.removeChild(convertedFragmentData.firstChild);
+      while (convertedFragmentData.firstChild) {
+        convertedFragmentData.removeChild(convertedFragmentData.firstChild);
+      }
 
       const convertedData = await convertFragment(user, fragment.id, conversionTypeInput.value);
 

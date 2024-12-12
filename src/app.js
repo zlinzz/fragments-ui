@@ -116,6 +116,7 @@ async function init() {
 
     try {
       await createFragment(user, type, fragmentData);
+      fragmentDataInput.disabled = false;
       fragmentPostForm.reset();
 
       const updatedUserFragments = await getUserFragments(user);
