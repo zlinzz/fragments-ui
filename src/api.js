@@ -30,6 +30,80 @@ export async function getUserFragments(user) {
   }
 }
 
+// Get fragment data by id
+export async function getFragmentData(user, fragmentId) {
+  console.log("Requesting a fragment's data...");
+  try {
+    const res = await fetch(`${apiUrl}/v1/fragments/${fragmentId}`, {
+      headers: user.authorizationHeaders(),
+    });
+
+    if (!res.ok) {
+      throw new Error(`${res.status} ${res.statusText}`);
+    }
+
+    // Check the content type
+    const contentType = res.headers.get('Content-Type');
+    // if returns image
+    if (contentType && contentType.startsWith('image/')) {
+      // Handle binary image data
+      const blob = await res.blob();
+      console.log('Image Blob received:', blob);
+
+      const imgElement = document.createElement('img');
+      // Generates a URL for the Blob
+      imgElement.src = URL.createObjectURL(blob);
+      console.log('Image element created with src:', imgElement.src);
+
+      return imgElement;
+    } else {
+      // Handle text or other types of data
+      const data = await res.text();
+      console.log("Successfully got fragment's data", { data, type: contentType });
+      return data;
+    }
+  } catch (err) {
+    console.error("Unable to get fragment's data by id (GET /v1/fragment/:id)", { err });
+  }
+}
+
+// Convert fragment data by id and ext
+export async function convertFragment(user, fragmentId, targetType) {
+  console.log("Converting a fragment's data...");
+  try {
+    const res = await fetch(`${apiUrl}/v1/fragments/${fragmentId}.${targetType}`, {
+      headers: user.authorizationHeaders(),
+    });
+
+    if (!res.ok) {
+      throw new Error(`${res.status} ${res.statusText}`);
+    }
+
+    const contentType = res.headers.get('Content-Type');
+    // if returns image
+    if (contentType && contentType.startsWith('image/')) {
+      // Handle binary image data
+      const blob = await res.blob();
+      console.log('Converted image Blob received:', blob);
+
+      const imgElement = document.createElement('img');
+      // Generates a URL for the Blob
+      imgElement.src = URL.createObjectURL(blob);
+      console.log('Converted image element created with src:', imgElement.src);
+
+      return imgElement;
+    } else {
+      // Handle text or other types of data
+      const data = await res.text();
+      console.log('Fragment successfully converted', { data, type: contentType });
+      return data;
+    }
+  } catch (err) {
+    console.error('Failed to convert fragment (GET /v1/fragment/:id.ext)', { err });
+    return null;
+  }
+}
+
 export async function createFragment(user, type, data) {
   console.log('Creating a new fragment...');
 
@@ -70,9 +144,124 @@ export async function createFragment(user, type, data) {
   }
 }
 
-// Open the modal and assign event listener to update modal form elements
+export async function updateFragment(user, fragmentId, updatedType, updatedData) {
+  console.log(`Updating fragment with id ${fragmentId}...`);
+
+  try {
+    const res = await fetch(`${apiUrl}/v1/fragments/${fragmentId}`, {
+      method: 'PUT',
+      headers: {
+        ...user.authorizationHeaders(),
+        'Content-Type': updatedType,
+      },
+      body: updatedData,
+    });
+
+    if (!res.ok) {
+      throw new Error(`${res.status} ${res.statusText}`);
+    }
+
+    const response = await res.json();
+    console.log('Successfully updated fragment', { response });
+    return response;
+  } catch (err) {
+    console.error('Unable to update fragment', { err });
+    return null;
+  }
+}
+
+export async function deleteFragment(user, fragmentId) {
+  console.log(`Deleting fragment with ID: ${fragmentId}...`);
+  try {
+    const res = await fetch(`${apiUrl}/v1/fragments/${fragmentId}`, {
+      method: 'DELETE',
+      headers: user.authorizationHeaders(),
+    });
+
+    if (!res.ok) {
+      throw new Error(`${res.status} ${res.statusText}`);
+    }
+
+    console.log('Successfully deleted fragment');
+    return true;
+  } catch (err) {
+    console.error('Unable to delete fragment:', err);
+    return false;
+  }
+}
+
+export function displayFragments(fragments) {
+  const fragmentListContainer = document.querySelector('#fragmentListContainer');
+
+  // Clear all existing list before appending new content
+  fragmentListContainer.innerHTML = '';
+
+  if (fragments.length > 0) {
+    const fragmentList = document.createElement('ul');
+    fragments.forEach((fragment) => {
+      const fragmentItem = document.createElement('li');
+      fragmentItem.innerHTML = `
+        <strong>ID:</strong> ${fragment.id}<br>
+        <strong>Created:</strong> ${new Date(fragment.created).toLocaleString()}<br>
+        <strong>Updated:</strong> ${new Date(fragment.updated).toLocaleString()}<br>
+        <strong>Type:</strong> ${fragment.type}<br>
+        <strong>Size:</strong> ${fragment.size} <br/>
+      `;
+
+      // Create a delete button
+      const deleteButton = document.createElement('button');
+      deleteButton.textContent = 'Delete';
+      deleteButton.style.marginRight = '5px';
+
+      // Add event listener to delete button
+      deleteButton.addEventListener('click', async () => {
+        const user = await getUser();
+        const isDeleted = await deleteFragment(user, fragment.id);
+        if (isDeleted) {
+          // Re-fetch and update the fragment list after successful deletion
+          const updatedFragments = await getUserFragments(user);
+          displayFragments(updatedFragments.fragments);
+        }
+      });
+
+      // Create an update button
+      const updateButton = document.createElement('button');
+      updateButton.textContent = 'Update';
+      updateButton.style.marginRight = '5px';
+
+      // Add event listener to the update button to open the modal for updating
+      updateButton.addEventListener('click', () => {
+        openUpdateModal(fragment);
+      });
+
+      // Create a convert button
+      const convertButton = document.createElement('button');
+      convertButton.textContent = 'View & Convert';
+      convertButton.addEventListener('click', () => {
+        openConvertModal(fragment);
+      });
+
+      // Append the delete, update button, and fragment list to the unordered list element
+      fragmentItem.appendChild(deleteButton);
+      fragmentItem.appendChild(updateButton);
+      fragmentItem.appendChild(convertButton);
+      fragmentList.appendChild(fragmentItem);
+    });
+
+    // Append the unordered list to the fragmentListContainer
+    fragmentListContainer.appendChild(fragmentList);
+  } else {
+    // Create and assign fragment not found message
+    const noFragmentsMessage = document.createElement('p');
+    noFragmentsMessage.textContent = 'No fragments found.';
+    noFragmentsMessage.style.color = 'red';
+    fragmentListContainer.appendChild(noFragmentsMessage);
+  }
+}
+
+// Open the update fragment modal and assign event listener to update modal form elements
 export function openUpdateModal(fragment) {
-  const modal = document.getElementById('updateFragmentModal');
+  const modal = document.querySelector('#updateFragmentModal');
   // Use flex to center the modal
   modal.style.display = 'flex';
 
@@ -158,109 +347,64 @@ export function openUpdateModal(fragment) {
   };
 }
 
-export async function updateFragment(user, fragmentId, updatedType, updatedData) {
-  console.log(`Updating fragment with id ${fragmentId}`);
+// Open the convert fragment modal and assign event listener to convert modal form elements
+export async function openConvertModal(fragment) {
+  const modal = document.querySelector('#convertFragmentModal');
+  modal.style.display = 'flex';
+
+  // Pre-fill the modal with the fragment data
+  const originalFragmentData = document.querySelector('#originalFragmentData');
+  const convertedFragmentData = document.querySelector('#convertedFragmentData');
+  const conversionMessage = document.querySelector('#conversionMessage');
+  const conversionTypeInput = document.querySelector('#conversionType');
+
+  // Clear any previous original data
+  originalFragmentData.textContent = '';
+  // Clear any previous type input
+  conversionTypeInput.value = '';
+  // Clear any previous conversion data
+  convertedFragmentData.textContent = '';
+  // Clear any previous status messages
+  conversionMessage.innerHTML = '';
 
   try {
-    const res = await fetch(`${apiUrl}/v1/fragments/${fragmentId}`, {
-      method: 'PUT',
-      headers: {
-        ...user.authorizationHeaders(),
-        'Content-Type': updatedType,
-      },
-      body: updatedData,
-    });
+    const user = await getUser();
+    const originalData = await getFragmentData(user, fragment.id);
 
-    if (!res.ok) {
-      throw new Error(`${res.status} ${res.statusText}`);
+    // Display the fragment's original data
+    if (originalData instanceof HTMLElement) {
+      originalFragmentData.appendChild(originalData);
+    } else {
+      originalFragmentData.textContent = originalData || 'No data available';
     }
 
-    const response = await res.json();
-    console.log('Successfully updated fragment', { response });
-    return response;
-  } catch (err) {
-    console.error('Unable to update fragment', { err });
-    return null;
-  }
-}
+    // Assign event listener to the convert button
+    const convertButton = document.querySelector('#ConvertFragmentBtn');
+    convertButton.onclick = async () => {
+      // Requires target type input
+      if (!conversionTypeInput.value) {
+        conversionMessage.innerHTML = 'Please input a conversion type.';
+        conversionMessage.style.color = 'red';
+        return;
+      }
 
-export function displayFragments(fragments) {
-  const fragmentListContainer = document.querySelector('#fragmentListContainer');
+      const convertedData = await convertFragment(user, fragment.id, conversionTypeInput.value);
 
-  // Clear all existing list before appending new content
-  fragmentListContainer.innerHTML = '';
-
-  if (fragments.length > 0) {
-    const fragmentList = document.createElement('ul');
-    fragments.forEach((fragment) => {
-      const fragmentItem = document.createElement('li');
-      fragmentItem.innerHTML = `
-        <strong>ID:</strong> ${fragment.id}<br>
-        <strong>Created:</strong> ${new Date(fragment.created).toLocaleString()}<br>
-        <strong>Updated:</strong> ${new Date(fragment.updated).toLocaleString()}<br>
-        <strong>Type:</strong> ${fragment.type}<br>
-        <strong>Size:</strong> ${fragment.size} <br/>
-      `;
-
-      // Create a delete button
-      const deleteButton = document.createElement('button');
-      deleteButton.textContent = 'Delete';
-      deleteButton.style.marginRight = '10px';
-
-      // Add event listener to delete button
-      deleteButton.addEventListener('click', async () => {
-        const user = await getUser();
-        const isDeleted = await deleteFragment(user, fragment.id);
-        if (isDeleted) {
-          // Re-fetch and update the fragment list after successful deletion
-          const updatedFragments = await getUserFragments(user);
-          displayFragments(updatedFragments.fragments);
+      if (convertedData) {
+        if (convertedData instanceof HTMLElement) {
+          // It's an image element, append it to container
+          convertedFragmentData.appendChild(convertedData);
+        } else {
+          convertedFragmentData.textContent = convertedData;
         }
-      });
-
-      // Create an update button
-      const updateButton = document.createElement('button');
-      updateButton.textContent = 'Update';
-      // updateButton.id = fragment.id;
-
-      // Add event listener to the update button to open the modal for updating
-      updateButton.addEventListener('click', () => {
-        openUpdateModal(fragment);
-      });
-
-      // Append the delete, update button, and fragment list to the unordered list element
-      fragmentItem.appendChild(deleteButton);
-      fragmentItem.appendChild(updateButton);
-      fragmentList.appendChild(fragmentItem);
-    });
-
-    // Append the unordered list to the fragmentListContainer
-    fragmentListContainer.appendChild(fragmentList);
-  } else {
-    // Create and assign fragment not found message
-    const noFragmentsMessage = document.createElement('p');
-    noFragmentsMessage.textContent = 'No fragments found.';
-    noFragmentsMessage.style.color = 'red';
-    fragmentListContainer.appendChild(noFragmentsMessage);
-  }
-}
-
-export async function deleteFragment(user, fragmentId) {
-  console.log(`Deleting fragment with ID: ${fragmentId}`);
-  try {
-    const res = await fetch(`${apiUrl}/v1/fragments/${fragmentId}`, {
-      method: 'DELETE',
-      headers: user.authorizationHeaders(),
-    });
-
-    if (!res.ok) {
-      throw new Error(`${res.status} ${res.statusText}`);
-    }
-
-    console.log('Successfully deleted fragment');
-    return true;
+        conversionMessage.innerHTML = 'Conversion successful!';
+        conversionMessage.style.color = 'green';
+      } else {
+        conversionMessage.innerHTML = 'Failed to convert fragment, please try again.<br />Note: The original type may not support conversion to the target type.';
+        conversionMessage.style.color = 'red';
+      }
+    };
   } catch (err) {
-    console.error('Unable to delete fragment:', err);
-    return false;
+    console.log(err);
   }
 }

@@ -78,11 +78,51 @@
           <br />
 
           <button type="submit" id="updateFragmentM">Update Fragment</button>
-          <button type="button" id="closeModal">Close</button>
+          <button type="button" id="closeUpdateModal">Close</button>
 
           <!-- Status message container -->
           <div id="updateFragmentStatus" class="status-message"></div>
         </form>
+      </div>
+    </div>
+
+    <!-- Modal for Fragment Conversion -->
+    <div id="convertFragmentModal" class="modal">
+      <div class="modal-content">
+        <h2>Convert Fragment</h2>
+        <!-- Display the original data -->
+        <div>
+          <p>
+            <strong>Original Fragment Data:</strong>
+            <br />
+            <span id="originalFragmentData"></span>
+          </p>
+        </div>
+
+        <div>
+          <!-- Ask for conversion type -->
+          <label for="conversionType"><strong>Convert To:</strong></label>
+          <input
+            type="text"
+            id="conversionType"
+            placeholder="Enter target type's extension (e.g., txt)"
+          />
+
+          <br />
+          <br />
+
+          <!-- Show converted data -->
+          <p><strong>Converted Fragment Data:</strong></p>
+          <span id="convertedFragmentData"></span>
+        </div>
+
+        <br />
+
+        <button type="submit" id="ConvertFragmentBtn">Convert</button>
+        <button type="button" id="closeConvertModal">Close</button>
+
+        <!-- Status message container -->
+        <div id="conversionMessage" class="status-message"></div>
       </div>
     </div>
   </body>

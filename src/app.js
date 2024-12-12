@@ -19,7 +19,9 @@ async function init() {
   const fragmentListSection = document.querySelector('#fragmentListSection');
   const fragmentListContainer = document.querySelector('#fragmentListContainer');
   // Update fragment modal elements
-  const closeModalBtn = document.getElementById('closeModal');
+  const closeUpdateModalBtn = document.querySelector('#closeUpdateModal');
+  // Convert fragment modal elements
+  const closeConvertModalBtn = document.querySelector('#closeConvertModal');
 
   // Set required attribute for fragmentDataInput and fragmentTypeInput
   // Set fragment type input placeholder and value based on the file input state
@@ -124,10 +126,16 @@ async function init() {
     }
   };
 
-  // Add event listener to close the modal
-  closeModalBtn.addEventListener('click', () => {
+  // Add event listener to close the update modal
+  closeUpdateModalBtn.addEventListener('click', () => {
     const modal = document.getElementById('updateFragmentModal');
     // Hide the modal
+    modal.style.display = 'none';
+  });
+
+  // Add event listener to close the convert modal
+  closeConvertModalBtn.addEventListener('click', () => {
+    const modal = document.getElementById('convertFragmentModal');
     modal.style.display = 'none';
   });
 }
