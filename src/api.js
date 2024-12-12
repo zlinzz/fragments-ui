@@ -108,7 +108,8 @@ export async function createFragment(user, type, data) {
   console.log('Creating a new fragment...');
 
   const fragmentCreateStatus = document.querySelector('#fragmentCreateStatus');
-  const Message = fragmentCreateStatus.querySelector('.status-message');
+  // const Message = fragmentCreateStatus.querySelector('.status-message');
+  const Message = fragmentCreateStatus.querySelector('#createFragmentStatus');
 
   // Clear any previous status message
   Message.innerHTML = '';
@@ -128,7 +129,7 @@ export async function createFragment(user, type, data) {
     }
 
     // Assign success message
-    Message.textContent = 'Fragment created successfully!';
+    Message.innerHTML = 'Fragment created successfully!';
     Message.style.color = 'green';
 
     const response = await res.json();
@@ -136,7 +137,7 @@ export async function createFragment(user, type, data) {
     return response;
   } catch (err) {
     // Assign Fail message
-    Message.textContent = `Failed to create fragment: ${err.message}`;
+    Message.innerHTML = `Failed to create fragment: ${err.message}.<br />Your input type or input type format may not be acceptable.`;
     Message.style.color = 'red';
 
     console.error('Unable to create fragment', { err });
@@ -400,7 +401,8 @@ export async function openConvertModal(fragment) {
         conversionMessage.innerHTML = 'Conversion successful!';
         conversionMessage.style.color = 'green';
       } else {
-        conversionMessage.innerHTML = 'Failed to convert fragment, please try again.<br />Note: The original type may not support conversion to the target type.';
+        conversionMessage.innerHTML =
+          'Failed to convert fragment, please try again.<br />Note: The original type may not support conversion to the target type.';
         conversionMessage.style.color = 'red';
       }
     };

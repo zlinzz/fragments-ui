@@ -126,6 +126,13 @@ async function init() {
     }
   };
 
+  // Once the user click on the display fragment area, all html
+  // status message on the create fragment form will be cleared
+  fragmentListContainer.addEventListener('click', () => {
+    const Message = document.querySelector('#createFragmentStatus');
+    Message.innerHTML = '';
+  });
+
   // Add event listener to close the update modal
   closeUpdateModalBtn.addEventListener('click', () => {
     const modal = document.getElementById('updateFragmentModal');
